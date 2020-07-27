@@ -10,6 +10,7 @@ from flask import redirect
 from flask import render_template
 from flask import session
 from flask import url_for
+from flask import send_from_directory
 from authlib.integrations.flask_client import OAuth
 from six.moves.urllib.parse import urlencode
 
@@ -85,7 +86,7 @@ def callback_handling():
 
 @app.route('/login')
 def login():
-    return redirect('/dashboard')
+    return auth0.authorize_redirect(redirect_uri=AUTH0_CALLBACK_URL, audience=AUTH0_AUDIENCE)
 
 
 @app.route('/logout')
@@ -96,8 +97,11 @@ def logout():
 
 
 @app.route('/dashboard')
+@requires_auth
 def dashboard():
-    return render_template('dashboard.html')
+    return render_template('dashboard.html',
+                           userinfo=session[constants.PROFILE_KEY],
+                           userinfo_pretty=json.dumps(session[constants.JWT_PAYLOAD], indent=4))
 
 @app.route('/video')
 def video():
